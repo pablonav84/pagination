@@ -1,0 +1,20 @@
+<h2>Detalle de Carritos</h2>
+<hr>
+
+<h1>Carrito {{carts._id}}</h1>
+{{#if carts.items.length}}
+  <ul>
+    {{#each carts.items}}
+      <li>
+        <h3>{{this.productId.title}}</h3>
+        <p>{{this.productId.description}}</p>
+        <p>Precio: ${{this.productId.price}}</p>
+        <p>Cantidad: {{this.quantity}}</p>
+      </li>
+    {{/each}}
+  </ul>
+{{else}}
+  <p>No se encontraron productos en el carrito.</p>
+{{/if}}
+
+<button onclick="window.location.href='/carts'">Volver</button>

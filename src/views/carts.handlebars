@@ -1,0 +1,73 @@
+<h1>Lista de Carritos</h1>
+<hr>
+
+<ul>
+    {{#each carts}}
+        <ol>
+            <h4>ID del Carrito: {{this._id}}</h4>
+           <a href="/carts/{{id}}">Ver Detalles</a>
+        </ol>
+    {{/each}}
+</ul>
+<br>
+
+<button onclick="window.location.href='/carts?pagina=1'">Pag.1</button>
+
+{{#if hasPrevPage}}
+    <button onclick="window.location.href='/carts?pagina={{PrevPage}}'">Pag.Ant.</button>
+{{/if}}
+
+<input type="text" id="pagina">
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        let inputPagina = document.getElementById("pagina");
+        const urlParams = new URLSearchParams(window.location.search); // Obtener los parámetros de la URL
+        const paginaParam = urlParams.get('pagina'); // Obtener el valor del parámetro 'pagina'
+        if (paginaParam) {
+            inputPagina.value = paginaParam; // Establecer el valor del campo de entrada con el valor del parámetro 'pagina'
+        }
+        inputPagina.focus(); // Enfocar automáticamente el campo de entrada
+
+        inputPagina.addEventListener("change", function() {
+            let pageNumber = parseInt(inputPagina.value); // Convertir el valor a un número entero
+            if (!isNaN(pageNumber) && pageNumber > 0 && pageNumber <= {{totalPages}}) {
+                window.location.href = "/carts?pagina=" + pageNumber;
+            } else {
+                alert("Por favor, ingresa un número de página válido.");
+                inputPagina.value = "{{currentPage}}"; // Restablecer el valor del campo de entrada a la página actual
+            }
+        });
+    });
+</script>
+
+{{#if hasNextPage}}
+    <button onclick="window.location.href='/carts?pagina={{nextPage}}'">Pag.Sig.</button>
+{{/if}}
+
+<button onclick="window.location.href='/carts?pagina={{totalPages}}'">Ult. Pag.</button>
+<br><br>
+<button onclick="window.location.href='/'">Volver</button>
+
+
+<!--
+<ul>
+    {{#each carts}}
+        <ol>
+            <h3>ID del Carrito: {{this._id}}</h3>
+            <a href="/detailCarts/{{id}}">Ver Detalles</a>
+            <br>
+            <ul>
+                {{#each this.items}}
+                    ol>
+                        <h4>Producto: {{this.productId.title}}</h4>
+                        <p>Descripción: {{this.productId.description}}</p>
+                        <p>Precio: {{this.productId.price}}</p>
+                        <p>Cantidad: {{this.quantity}}</p>
+                    <ol>
+                {{/each}}
+            </ul>
+        </ol>
+    {{/each}}
+</ul>
+
+            -->

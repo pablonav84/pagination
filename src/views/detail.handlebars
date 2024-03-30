@@ -1,0 +1,29 @@
+<h2>Su Producto Seleccionado</h2>
+<hr>
+
+<p>Codigo del Producto: {{product.code}}</p>
+<p>Marca: {{product.title}}</p>
+<p>Detalle: {{product.description}}</p>
+<p>Categoria: {{product.category}}</p>
+<p>precio: {{product.price}}</p>
+<button onclick="addToCart("productId")">Agregar al carrito</button>
+
+<script>
+    const addToCart = async (productId) => {
+  let quantity = 1; // Cantidad por defecto
+  try {
+    let respuesta = await fetch(`/api/carts/${cartId}/products/${productId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ quantity: quantity }) // Envía la cantidad deseada
+    });
+    let data = await respuesta.json(); // Convertir la respuesta a JSON
+  } catch (error) {
+      console.error('Ha ocurrido un error:', error);
+  }
+}
+</script>
+<br>
+<button onclick="window.location.href='/'">Volver</button>
