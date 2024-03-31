@@ -154,3 +154,35 @@ router.delete('/:cid', async (req, res) => {
       res.status(400).json({ message: err.message });
   }
 });
+
+//Actualiza el carrito con un arreglo de productos ¡¡¡¡¡(SIN FUNCIONAR)!!!!!
+router.put('/:cid', async (req, res) => {
+    const cartId = req.params.cid;
+    const { productIds } = req.body;
+    try {
+      // Busca el carrito por su ID
+      const cart = await cartModelo.findById(cartId);
+      if (!cart) {
+        return res.status(404).json({ message: 'Carrito no encontrado' });
+      }
+      // Busca los productos por sus IDs
+      const products = await productsModelo.find({ _id: { $in: productIds } });
+      if (products.length !== productIds.length) {
+        return res.status(400).json({ message: 'Algunos productos no fueron encontrados' });
+      }
+      // Agrega el producto al carrito
+      if (!cart.items || cart.items.length === 0) {
+        // Si el carrito está vacío, inicializa el array de items con los productos
+        cart.items = products.map(productId => ({ productId, quantity: 1 }));
+      } else {
+        // Si el carrito no está vacío, simplemente agrega el producto al array de items
+        cart.items.push(...products.map(productId => ({ productId, quantity: 1 })));
+      }
+      // Guarda el carrito actualizado
+      await cart.save();
+  
+      return res.status(200).json({ message: 'Carrito actualizado exitosamente' });
+    } catch (error) {
+      return res.status(500).json({ message: 'Error al actualizar el carrito', error: error.message });
+    }
+  });
