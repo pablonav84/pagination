@@ -1,7 +1,11 @@
 import { Router } from 'express';
 import { productsModelo } from '../model/products.Modelo.js';
 import { creaHash } from '../utils.js';
+import {ProductsManager} from "../classes/productsManagerMongo.js";
+import mongoose from "mongoose";
 export const router = Router();
+
+let pManager = new ProductsManager()
 
 //Obtener los productos
 router.get("/", async (req, res) => {
@@ -89,6 +93,46 @@ router.get("/", async (req, res) => {
         }
       });
       
+//Modifica cualquier campo del producto
+router.put("/:id", async (req, res) => {
+  let { id } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    res.setHeader("Content-Type", "application/json");
+    return res.status(400).json({ error: `id inválido` });
+  }
+let upDate=req.body
+if(upDate._id){
+  delete upDate._id
+}
+if(upDate.code){
+  let existe=await pManager.getProductBy({code:upDate.code, _id:{$ne:id}})
+if(existe){
+  res.setHeader("Content-Type", "application/json");
+    return res.status(400).json({ error: `Ya existe un producto con code ${upDate.code}` });
+}
+}
+if(upDate.password){
+  upDate.password=creaHash(upDate.password)
+}
+  try {
+    let resProduct = await pManager.updateProduct(id, upDate);
+    if (resProduct.modifiedCount>0) {
+      res.status(200).json({ message: `Producto con id ${id} modificado` });
+    } else {
+      res.setHeader("Content-Type", "application/json");
+      return res
+        .status(400)
+        .json({ error: `No existen productos con id ${id}` });
+    }
+  } catch (error) {
+    res.setHeader("Content-Type", "application/json");
+    return res.status(500).json({
+      error: `Error inesperado en el servidor`,
+      detalle: `${error.message}`,
+    });
+  }
+});
+
       //Elimina un producto
       router.delete("/:id", async (req, res) => {
         const productId = (req.params.id);

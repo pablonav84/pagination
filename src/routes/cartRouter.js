@@ -1,8 +1,11 @@
 import { Router } from "express"
 import { productsModelo } from "../model/products.Modelo.js";
 import { cartModelo } from "../model/carts.Modelo.js";
+import {ProductsManager} from "../classes/productsManagerMongo.js"
 import mongoose from "mongoose";
 export const router = Router()
+
+let pManager = new ProductsManager()
 
 //Obtener todos los carts disponibles
 router.get("/", async (req, res) => {
@@ -155,34 +158,52 @@ router.delete('/:cid', async (req, res) => {
   }
 });
 
-//Actualiza el carrito con un arreglo de productos ¡¡¡¡¡(SIN FUNCIONAR)!!!!!
-router.put('/:cid', async (req, res) => {
-    const cartId = req.params.cid;
-    const { productIds } = req.body;
-    try {
-      // Busca el carrito por su ID
-      const cart = await cartModelo.findById(cartId);
-      if (!cart) {
-        return res.status(404).json({ message: 'Carrito no encontrado' });
-      }
-      // Busca los productos por sus IDs
-      const products = await productsModelo.find({ _id: { $in: productIds } });
-      if (products.length !== productIds.length) {
-        return res.status(400).json({ message: 'Algunos productos no fueron encontrados' });
-      }
-      // Agrega el producto al carrito
-      if (!cart.items || cart.items.length === 0) {
-        // Si el carrito está vacío, inicializa el array de items con los productos
-        cart.items = products.map(productId => ({ productId, quantity: 1 }));
-      } else {
-        // Si el carrito no está vacío, simplemente agrega el producto al array de items
-        cart.items.push(...products.map(productId => ({ productId, quantity: 1 })));
-      }
-      // Guarda el carrito actualizado
-      await cart.save();
-  
-      return res.status(200).json({ message: 'Carrito actualizado exitosamente' });
-    } catch (error) {
-      return res.status(500).json({ message: 'Error al actualizar el carrito', error: error.message });
+// Modifica cualquier campo de un producto en el carrito
+router.put("/:cartId", async (req, res) => {
+  let { cartId } = req.params;
+  let productId = req.body.productId;
+  let updateFields = req.body;
+
+  //Verificar si el id es valido
+  if (!mongoose.Types.ObjectId.isValid(cartId) || !mongoose.Types.ObjectId.isValid(productId)) {
+    return res.status(400).json({ message: "ID ingresado no válido" });
+}
+  //Validaciones
+  if(updateFields._id){
+    delete updateFields._id
+  }
+  if(updateFields.code){
+    let existe=await productsManager.getProductBy({code:updateFields.code, _id:{$ne:id}})
+    if(existe){
+      res.setHeader("Content-Type", "application/json");
+      return res.status(400).json({ error: `Ya existe un producto con code ${updateFields.code}` });
     }
-  });
+  }
+  if(updateFields.password){
+    updateFields.password=creaHash(updateFields.password)
+  }
+  try {
+    //Busca el cart por id
+    let cart = await cartModelo.findById(cartId);
+    if (!cart) {
+      return res.status(404).json({ error: `Carrito no encontrado` });
+    }
+    //Busca el producto por id
+    let productIndex = cart.items.findIndex(item => item.productId.toString() === productId);
+    if (productIndex === -1) {
+      return res.status(404).json({ error: `Producto no encontrado en el carrito` });
+    }
+    // Aplicar las modificaciones a los campos del producto
+    Object.assign(cart.items[productIndex], updateFields);
+    // Guardar el carrito actualizado
+    await cart.save();
+
+    res.status(200).json({ message: `Producto en el carrito modificado` });
+  } catch (error) {
+    res.setHeader("Content-Type", "application/json");
+    return res.status(500).json({
+      error: `Error inesperado en el servidor`,
+      detalle: `${error.message}`,
+    });
+  }
+});

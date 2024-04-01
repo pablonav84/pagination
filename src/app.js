@@ -29,6 +29,34 @@ app.use("/", vistasRouter)
 app.use("/api/products", productsRouter)
 app.use("/api/carts", cartRouter)
 
+app.post('/carrito/:pid', async (req, res) => {
+  try {
+    // Crear un nuevo carrito
+    const nuevoCarrito = await cartModelo.create({ items: [] });
+
+    // Obtener el ID del producto desde la solicitud
+    const pid = req.params.pid;
+    const quantity = req.body.quantity;
+
+    // Validar si el ID del producto es un ObjectId válido
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+        return res.status(400).json({ message: "ID ingresado no válido" });
+    }
+    // Buscar el producto por su ID
+    const producto = await productsModelo.findById(productId);
+
+    // Agregar el producto al carrito si se encontró
+    if (producto) {
+      nuevoCarrito.items.push({ productId: producto._id, quantity: quantity || 1 });
+      await nuevoCarrito.save(); // Guardar el carrito actualizado
+    }
+    // Enviar una respuesta con el carrito creado y el producto agregado
+    res.setHeader("Content-Type", "application/json");
+    res.status(200).json({ message: 'Carrito creado y producto agregado con éxito', cart: nuevoCarrito });
+  } catch (error) {
+    res.status(500).json({ error: 'Ocurrió un error al crear el carrito o agregar el producto' });
+  }
+});
 
 app.get('*', (req, res) => {
   res.setHeader('Content-Type', 'text/plain');

@@ -6,14 +6,20 @@
 <p>Detalle: {{product.description}}</p>
 <p>Categoria: {{product.category}}</p>
 <p>precio: {{product.price}}</p>
-<button onclick="addToCart("productId")">Agregar al carrito</button>
+<button onclick="addToCart('pid')">Agregar al carrito</button>
+
+
+<br>
+<button onclick="window.location.href='/products'">Volver</button>
 
 <script>
-    const addToCart = async (productId) => {
+
+    const addToCart = async (pid) => {
   let quantity = 1; // Cantidad por defecto
   try {
-    let respuesta = await fetch(`/api/carts/${cartId}/products/${productId}`, {
-      method: 'PUT',
+    let respuesta = await fetch(`http://localhost:8080/carrito/${pid}`,
+    {
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
@@ -25,5 +31,3 @@
   }
 }
 </script>
-<br>
-<button onclick="window.location.href='/'">Volver</button>
