@@ -17,7 +17,7 @@
     const addToCart = async (pid) => {
   let quantity = 1; // Cantidad por defecto
   try {
-    let respuesta = await fetch(`http://localhost:8080/carrito/${pid}`,
+    let respuesta = await fetch(`http://localhost:8080/api/carts/${pid}`,
     {
       method: 'POST',
       headers: {
